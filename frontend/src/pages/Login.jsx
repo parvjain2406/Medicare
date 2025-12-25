@@ -1,15 +1,20 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useDoctorAuth } from '../context/DoctorAuthContext';
 
 /**
  * Login Page Component
- * Handles user authentication with validation
+ * Handles both patient and doctor authentication with toggle
  */
 const Login = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    const { login, isAuthenticated, loading, error, clearError } = useAuth();
+    const { login: patientLogin, isAuthenticated: isPatientAuth, loading: patientLoading, error: patientError, clearError: clearPatientError } = useAuth();
+    const { login: doctorLogin, isAuthenticated: isDoctorAuth, loading: doctorLoading, error: doctorError, clearError: clearDoctorError } = useDoctorAuth();
+
+    // Login mode state (patient or doctor)
+    const [isDoctor, setIsDoctor] = useState(location.state?.isDoctor || false);
 
     // Form state
     const [formData, setFormData] = useState({
@@ -24,17 +29,27 @@ const Login = () => {
 
     // Redirect if already authenticated
     useEffect(() => {
-        if (isAuthenticated) {
+        if (isPatientAuth && !isDoctor) {
             const from = location.state?.from?.pathname || '/';
             navigate(from, { replace: true });
         }
-    }, [isAuthenticated, navigate, location]);
+    }, [isPatientAuth, isDoctor, navigate, location]);
 
-    // Clear errors on mount
     useEffect(() => {
-        clearError();
+        if (isDoctorAuth && isDoctor) {
+            navigate('/doctor/dashboard', { replace: true });
+        }
+    }, [isDoctorAuth, isDoctor, navigate]);
+
+    // Clear errors on mount and mode switch
+    useEffect(() => {
+        if (isDoctor) {
+            clearDoctorError?.();
+        } else {
+            clearPatientError?.();
+        }
         setSubmitError('');
-    }, [clearError]);
+    }, [isDoctor, clearPatientError, clearDoctorError]);
 
     /**
      * Handle input change
@@ -58,6 +73,16 @@ const Login = () => {
         if (submitError) {
             setSubmitError('');
         }
+    };
+
+    /**
+     * Toggle between patient and doctor login
+     */
+    const toggleLoginMode = () => {
+        setIsDoctor(!isDoctor);
+        setFormData({ email: '', password: '' });
+        setValidationErrors({});
+        setSubmitError('');
     };
 
     /**
@@ -97,8 +122,9 @@ const Login = () => {
 
         setIsSubmitting(true);
 
-        // Call login function
-        const result = await login({
+        // Call appropriate login function
+        const loginFn = isDoctor ? doctorLogin : patientLogin;
+        const result = await loginFn({
             email: formData.email.trim().toLowerCase(),
             password: formData.password
         });
@@ -111,6 +137,9 @@ const Login = () => {
         // If success, useEffect will handle redirect
     };
 
+    const loading = isDoctor ? doctorLoading : patientLoading;
+    const error = isDoctor ? doctorError : patientError;
+
     return (
         <div className="auth-container">
             <div className="auth-card">
@@ -119,8 +148,18 @@ const Login = () => {
                         <span className="logo-icon">🏥</span>
                         <h1>MediCare</h1>
                     </div>
-                    <h2>Welcome Back</h2>
-                    <p>Sign in to access your healthcare dashboard</p>
+                    <h2>{isDoctor ? "Doctor's Portal" : 'Welcome Back'}</h2>
+                    <p>
+                        {isDoctor
+                            ? 'Sign in to manage your appointments'
+                            : 'Sign in to access your healthcare dashboard'}
+                    </p>
+                </div>
+
+                {/* Login Mode Indicator */}
+                <div className={`login-mode-indicator ${isDoctor ? 'doctor-mode' : 'patient-mode'}`}>
+                    <span className="mode-icon">{isDoctor ? '👨‍⚕️' : '👤'}</span>
+                    <span className="mode-text">{isDoctor ? 'Doctor Login' : 'Patient Login'}</span>
                 </div>
 
                 <form onSubmit={handleSubmit} className="auth-form">
@@ -141,7 +180,7 @@ const Login = () => {
                             name="email"
                             value={formData.email}
                             onChange={handleChange}
-                            placeholder="Enter your email"
+                            placeholder={isDoctor ? 'e.g., doctor.name@medicare.ac.in' : 'Enter your email'}
                             className={validationErrors.email ? 'error' : ''}
                             disabled={isSubmitting || loading}
                             autoComplete="email"
@@ -160,7 +199,7 @@ const Login = () => {
                             name="password"
                             value={formData.password}
                             onChange={handleChange}
-                            placeholder="Enter your password"
+                            placeholder={isDoctor ? 'Default: 123456' : 'Enter your password'}
                             className={validationErrors.password ? 'error' : ''}
                             disabled={isSubmitting || loading}
                             autoComplete="current-password"
@@ -173,7 +212,7 @@ const Login = () => {
                     {/* Submit Button */}
                     <button
                         type="submit"
-                        className="auth-button"
+                        className={`auth-button ${isDoctor ? 'doctor-button' : ''}`}
                         disabled={isSubmitting || loading}
                     >
                         {(isSubmitting || loading) ? (
@@ -182,19 +221,55 @@ const Login = () => {
                                 Signing In...
                             </>
                         ) : (
-                            'Sign In'
+                            `Sign In as ${isDoctor ? 'Doctor' : 'Patient'}`
                         )}
                     </button>
                 </form>
 
-                <div className="auth-footer">
-                    <p>
-                        Don't have an account?{' '}
-                        <Link to="/register" className="auth-link">
-                            Create Account
-                        </Link>
-                    </p>
+                {/* Toggle Login Mode */}
+                <div className="login-toggle-section">
+                    <div className="toggle-divider">
+                        <span>or</span>
+                    </div>
+                    <button
+                        type="button"
+                        className={`toggle-login-btn ${isDoctor ? 'toggle-patient' : 'toggle-doctor'}`}
+                        onClick={toggleLoginMode}
+                    >
+                        {isDoctor ? (
+                            <>
+                                <span>👤</span> Switch to Patient Login
+                            </>
+                        ) : (
+                            <>
+                                <span>👨‍⚕️</span> Doctor's Login
+                            </>
+                        )}
+                    </button>
                 </div>
+
+                {/* Footer - Only show for patient */}
+                {!isDoctor && (
+                    <div className="auth-footer">
+                        <p>
+                            Don't have an account?{' '}
+                            <Link to="/register" className="auth-link">
+                                Create Account
+                            </Link>
+                        </p>
+                    </div>
+                )}
+
+                {/* Doctor info note */}
+                {isDoctor && (
+                    <div className="doctor-login-note">
+                        <p>
+                            <strong>👨‍⚕️ For Doctors:</strong> Use your @medicare.ac.in email
+                            <br />
+                            <small>Contact admin if you don't have credentials</small>
+                        </p>
+                    </div>
+                )}
             </div>
         </div>
     );

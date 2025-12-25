@@ -31,6 +31,10 @@ const BookAppointment = () => {
     const [submitStatus, setSubmitStatus] = useState({ type: '', message: '' });
     const [doctorDetails, setDoctorDetails] = useState(null);
 
+    // Prescription modal state
+    const [selectedPrescription, setSelectedPrescription] = useState(null);
+    const [isPrescriptionModalOpen, setIsPrescriptionModalOpen] = useState(false);
+
     // Fetch appointments on load
     useEffect(() => {
         fetchAppointments();
@@ -40,6 +44,15 @@ const BookAppointment = () => {
     // Refetch when filter changes
     useEffect(() => {
         fetchAppointments();
+    }, [filterStatus]);
+
+    // Auto-refresh appointments every 10 seconds for real-time updates
+    useEffect(() => {
+        const interval = setInterval(() => {
+            fetchAppointments(true); // silent refresh
+        }, 10000); // 10 seconds
+
+        return () => clearInterval(interval);
     }, [filterStatus]);
 
     // Fetch doctor details when selected
@@ -61,9 +74,9 @@ const BookAppointment = () => {
         }
     }, [selectedDoctor, selectedDate]);
 
-    const fetchAppointments = async () => {
+    const fetchAppointments = async (silent = false) => {
         try {
-            setAppointmentsLoading(true);
+            if (!silent) setAppointmentsLoading(true);
             const params = new URLSearchParams();
             if (filterStatus !== 'All') params.append('status', filterStatus);
 
@@ -74,7 +87,7 @@ const BookAppointment = () => {
         } catch (error) {
             console.error('Error fetching appointments:', error);
         } finally {
-            setAppointmentsLoading(false);
+            if (!silent) setAppointmentsLoading(false);
         }
     };
 
@@ -137,7 +150,7 @@ const BookAppointment = () => {
             if (response.data.success) {
                 setSubmitStatus({
                     type: 'success',
-                    message: 'Appointment booked successfully!'
+                    message: 'Appointment booked successfully! Waiting for doctor confirmation.'
                 });
                 // Reset form and switch to appointments tab
                 setSelectedDoctor('');
@@ -177,6 +190,11 @@ const BookAppointment = () => {
         }
     };
 
+    const openPrescriptionModal = (appointment) => {
+        setSelectedPrescription(appointment);
+        setIsPrescriptionModalOpen(true);
+    };
+
     // Get minimum date (today)
     const getMinDate = () => {
         const today = new Date();
@@ -208,10 +226,24 @@ const BookAppointment = () => {
 
     const getStatusClass = (status) => {
         switch (status) {
-            case 'Scheduled': return 'status-scheduled';
+            case 'Pending': return 'status-pending';
+            case 'Confirmed': return 'status-confirmed';
             case 'Completed': return 'status-completed';
+            case 'Rejected': return 'status-rejected';
             case 'Cancelled': return 'status-cancelled';
+            case 'Scheduled': return 'status-scheduled';
             default: return '';
+        }
+    };
+
+    const getStatusIcon = (status) => {
+        switch (status) {
+            case 'Pending': return '⏳';
+            case 'Confirmed': return '✅';
+            case 'Completed': return '📋';
+            case 'Rejected': return '❌';
+            case 'Cancelled': return '🚫';
+            default: return '📅';
         }
     };
 
@@ -237,9 +269,9 @@ const BookAppointment = () => {
                     onClick={() => setActiveTab('my-appointments')}
                 >
                     📅 My Appointments
-                    {appointments.filter(a => a.status === 'Scheduled').length > 0 && (
+                    {appointments.filter(a => ['Pending', 'Confirmed'].includes(a.status)).length > 0 && (
                         <span className="tab-badge">
-                            {appointments.filter(a => a.status === 'Scheduled').length}
+                            {appointments.filter(a => ['Pending', 'Confirmed'].includes(a.status)).length}
                         </span>
                     )}
                 </button>
@@ -262,9 +294,11 @@ const BookAppointment = () => {
                             onChange={(e) => setFilterStatus(e.target.value)}
                         >
                             <option value="All">All Appointments</option>
-                            <option value="Scheduled">Scheduled</option>
-                            <option value="Completed">Completed</option>
-                            <option value="Cancelled">Cancelled</option>
+                            <option value="Pending">⏳ Pending</option>
+                            <option value="Confirmed">✅ Confirmed</option>
+                            <option value="Completed">📋 Completed</option>
+                            <option value="Rejected">❌ Rejected</option>
+                            <option value="Cancelled">🚫 Cancelled</option>
                         </select>
                     </div>
 
@@ -308,7 +342,7 @@ const BookAppointment = () => {
                                         <div className="appointment-header">
                                             <h3>{appointment.doctor?.name || 'Doctor'}</h3>
                                             <span className={`status-badge ${getStatusClass(appointment.status)}`}>
-                                                {appointment.status}
+                                                {getStatusIcon(appointment.status)} {appointment.status}
                                             </span>
                                         </div>
                                         <p className="appointment-specialty">
@@ -327,14 +361,36 @@ const BookAppointment = () => {
                                         <div className="appointment-reason">
                                             <strong>Reason:</strong> {appointment.reason}
                                         </div>
-                                        {appointment.status === 'Scheduled' && isUpcoming(appointment.date) && (
-                                            <button
-                                                className="cancel-btn"
-                                                onClick={() => handleCancelAppointment(appointment._id)}
-                                            >
-                                                ❌ Cancel Appointment
-                                            </button>
+
+                                        {/* Rejection Reason */}
+                                        {appointment.status === 'Rejected' && appointment.rejectionReason && (
+                                            <div className="rejection-info">
+                                                <strong>❌ Rejection Reason:</strong> {appointment.rejectionReason}
+                                            </div>
                                         )}
+
+                                        {/* Action Buttons */}
+                                        <div className="appointment-actions">
+                                            {/* Cancel button for pending/confirmed */}
+                                            {['Pending', 'Confirmed'].includes(appointment.status) && isUpcoming(appointment.date) && (
+                                                <button
+                                                    className="cancel-btn"
+                                                    onClick={() => handleCancelAppointment(appointment._id)}
+                                                >
+                                                    ❌ Cancel Appointment
+                                                </button>
+                                            )}
+
+                                            {/* View Prescription button for completed */}
+                                            {appointment.status === 'Completed' && appointment.prescription && (
+                                                <button
+                                                    className="view-prescription-btn"
+                                                    onClick={() => openPrescriptionModal(appointment)}
+                                                >
+                                                    📋 View Prescription
+                                                </button>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                             ))}
@@ -508,8 +564,80 @@ const BookAppointment = () => {
                                 <span className="summary-label">Consultation Fee:</span>
                                 <span className="summary-value">₹{doctorDetails?.fees}</span>
                             </div>
+                            <div className="summary-note">
+                                <span>⏳ Status will be "Pending" until doctor confirms</span>
+                            </div>
                         </div>
                     )}
+                </div>
+            )}
+
+            {/* Prescription Modal */}
+            {isPrescriptionModalOpen && selectedPrescription && (
+                <div className="modal-overlay" onClick={() => setIsPrescriptionModalOpen(false)}>
+                    <div className="modal-content prescription-modal" onClick={e => e.stopPropagation()}>
+                        <div className="modal-header">
+                            <h3>📋 Prescription Details</h3>
+                            <button className="modal-close" onClick={() => setIsPrescriptionModalOpen(false)}>×</button>
+                        </div>
+                        <div className="modal-body">
+                            {/* Appointment Info */}
+                            <div className="prescription-header">
+                                <div className="rx-symbol">℞</div>
+                                <div className="prescription-info">
+                                    <h4>{selectedPrescription.doctor?.name}</h4>
+                                    <p>{selectedPrescription.doctor?.specialization}</p>
+                                    <p className="prescription-date">
+                                        Date: {formatDate(selectedPrescription.prescription?.issuedAt || selectedPrescription.date)}
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Diagnosis */}
+                            <div className="prescription-section">
+                                <h5>🔍 Diagnosis</h5>
+                                <p>{selectedPrescription.prescription?.diagnosis || 'Not specified'}</p>
+                            </div>
+
+                            {/* Medications */}
+                            <div className="prescription-section">
+                                <h5>💊 Medications</h5>
+                                {selectedPrescription.prescription?.medications?.length > 0 ? (
+                                    <div className="medications-list">
+                                        {selectedPrescription.prescription.medications.map((med, index) => (
+                                            <div key={index} className="medication-item">
+                                                <div className="med-name">{index + 1}. {med.name}</div>
+                                                <div className="med-details">
+                                                    <span><strong>Dosage:</strong> {med.dosage}</span>
+                                                    <span><strong>Duration:</strong> {med.duration}</span>
+                                                </div>
+                                                {med.instructions && (
+                                                    <div className="med-instructions">
+                                                        <strong>Instructions:</strong> {med.instructions}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <p>No medications prescribed</p>
+                                )}
+                            </div>
+
+                            {/* Notes */}
+                            {selectedPrescription.prescription?.notes && (
+                                <div className="prescription-section">
+                                    <h5>📝 Additional Notes</h5>
+                                    <p>{selectedPrescription.prescription.notes}</p>
+                                </div>
+                            )}
+                        </div>
+                        <div className="modal-footer">
+                            <button className="btn-primary" onClick={() => setIsPrescriptionModalOpen(false)}>
+                                Close
+                            </button>
+                        </div>
+                    </div>
                 </div>
             )}
         </div>

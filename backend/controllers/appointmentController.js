@@ -84,12 +84,27 @@ exports.createAppointment = async (req, res) => {
             });
         }
 
+        // Check if doctor is available on the selected day
+        // Add T00:00:00 to ensure local timezone is used
+        const appointmentDate = new Date(date + 'T00:00:00');
+        // Use 'short' weekday to match seed data format (Mon, Tue, Wed, etc.)
+        const dayOfWeek = appointmentDate.toLocaleDateString('en-US', { weekday: 'short' });
+
+        console.log('Booking attempt - Date:', date, 'Day:', dayOfWeek, 'Doctor days:', doctor.availability.days);
+
+        if (!doctor.availability.days.includes(dayOfWeek)) {
+            return res.status(400).json({
+                success: false,
+                message: `Dr. ${doctor.name} is not available on ${dayOfWeek}. Available days: ${doctor.availability.days.join(', ')}`
+            });
+        }
+
         // Check if slot is already booked
         const existingAppointment = await Appointment.findOne({
             doctor: doctorId,
             date: new Date(date),
             timeSlot: timeSlot,
-            status: { $ne: 'Cancelled' }
+            status: { $in: ['Pending', 'Confirmed'] }
         });
 
         if (existingAppointment) {
@@ -105,7 +120,7 @@ exports.createAppointment = async (req, res) => {
             date: new Date(date),
             timeSlot,
             reason,
-            status: 'Scheduled'
+            status: 'Pending'
         });
 
         // Populate doctor info before sending response

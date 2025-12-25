@@ -70,10 +70,13 @@ app.get('/api/health', (req, res) => {
 
 // API Routes
 app.use('/api/auth', require('./routes/auth'));
+app.use('/api/doctor/auth', require('./routes/doctorAuth'));
+app.use('/api/doctor/appointments', require('./routes/doctorAppointments'));
 app.use('/api/doctors', require('./routes/doctors'));
 app.use('/api/appointments', require('./routes/appointments'));
 app.use('/api/records', require('./routes/records'));
 app.use('/api/prescriptions', require('./routes/prescriptions'));
+app.use('/api/beds', require('./routes/beds'));
 
 // 404 handler for unknown routes
 app.use((req, res, next) => {

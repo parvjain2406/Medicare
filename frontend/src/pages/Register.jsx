@@ -11,11 +11,31 @@ const Register = () => {
     const location = useLocation();
     const { register, isAuthenticated, loading, error, clearError } = useAuth();
 
+    // Country codes list
+    const countryCodes = [
+        { code: '+91', country: 'India', flag: '🇮🇳' },
+        { code: '+1', country: 'USA/Canada', flag: '🇺🇸' },
+        { code: '+44', country: 'UK', flag: '🇬🇧' },
+        { code: '+61', country: 'Australia', flag: '🇦🇺' },
+        { code: '+971', country: 'UAE', flag: '🇦🇪' },
+        { code: '+966', country: 'Saudi Arabia', flag: '🇸🇦' },
+        { code: '+65', country: 'Singapore', flag: '🇸🇬' },
+        { code: '+60', country: 'Malaysia', flag: '🇲🇾' },
+        { code: '+49', country: 'Germany', flag: '🇩🇪' },
+        { code: '+33', country: 'France', flag: '🇫🇷' },
+        { code: '+81', country: 'Japan', flag: '🇯🇵' },
+        { code: '+86', country: 'China', flag: '🇨🇳' },
+        { code: '+82', country: 'South Korea', flag: '🇰🇷' },
+        { code: '+7', country: 'Russia', flag: '🇷🇺' },
+        { code: '+55', country: 'Brazil', flag: '🇧🇷' }
+    ];
+
     // Form state
     const [formData, setFormData] = useState({
         name: '',
         email: '',
         mobile: '',
+        countryCode: '+91',
         password: '',
         confirmPassword: ''
     });
@@ -121,11 +141,14 @@ const Register = () => {
 
         setIsSubmitting(true);
 
-        // Call register function
+        // Call register function - combine country code with mobile
+        const fullMobile = formData.mobile.trim()
+            ? `${formData.countryCode}${formData.mobile.trim()}`
+            : '';
         const result = await register({
             name: formData.name.trim(),
             email: formData.email.trim().toLowerCase(),
-            mobile: formData.mobile.trim(),
+            mobile: fullMobile,
             password: formData.password
         });
 
@@ -194,19 +217,33 @@ const Register = () => {
                         )}
                     </div>
 
-                    {/* Mobile Field */}
+                    {/* Mobile Field with Country Code */}
                     <div className="form-group">
                         <label htmlFor="mobile">Mobile Number (Optional)</label>
-                        <input
-                            type="tel"
-                            id="mobile"
-                            name="mobile"
-                            value={formData.mobile}
-                            onChange={handleChange}
-                            placeholder="Enter your mobile number"
-                            className={validationErrors.mobile ? 'error' : ''}
-                            disabled={isSubmitting || loading}
-                        />
+                        <div className="mobile-input-group">
+                            <select
+                                className="country-code-select"
+                                value={formData.countryCode}
+                                onChange={(e) => setFormData(prev => ({ ...prev, countryCode: e.target.value }))}
+                                disabled={isSubmitting || loading}
+                            >
+                                {countryCodes.map(cc => (
+                                    <option key={cc.code} value={cc.code}>
+                                        {cc.flag} {cc.code}
+                                    </option>
+                                ))}
+                            </select>
+                            <input
+                                type="tel"
+                                id="mobile"
+                                name="mobile"
+                                value={formData.mobile}
+                                onChange={handleChange}
+                                placeholder="Enter mobile number"
+                                className={validationErrors.mobile ? 'error' : ''}
+                                disabled={isSubmitting || loading}
+                            />
+                        </div>
                         {validationErrors.mobile && (
                             <span className="field-error">{validationErrors.mobile}</span>
                         )}

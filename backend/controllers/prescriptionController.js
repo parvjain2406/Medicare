@@ -8,13 +8,20 @@ const Prescription = require('../models/Prescription');
 exports.getPrescriptions = async (req, res) => {
     try {
         const { isActive } = req.query;
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
 
         let query = { patient: req.user._id };
 
         if (isActive === 'true') {
-            query.isActive = true;
+            // Active: validUntil is in the future OR (no validUntil AND isActive is true)
+            query.$or = [
+                { validUntil: { $gte: today } },
+                { validUntil: null, isActive: true }
+            ];
         } else if (isActive === 'false') {
-            query.isActive = false;
+            // Past/Expired: validUntil is in the past
+            query.validUntil = { $lt: today };
         }
 
         const prescriptions = await Prescription.find(query)
@@ -76,9 +83,15 @@ exports.getPrescriptionById = async (req, res) => {
  */
 exports.getActivePrescriptionsCount = async (req, res) => {
     try {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
         const count = await Prescription.countDocuments({
             patient: req.user._id,
-            isActive: true
+            $or: [
+                { validUntil: { $gte: today } },
+                { validUntil: null, isActive: true }
+            ]
         });
 
         res.status(200).json({

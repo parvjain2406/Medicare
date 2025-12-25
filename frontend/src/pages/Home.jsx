@@ -96,6 +96,95 @@ const Home = () => {
                         </div>
                     </section>
 
+                    {/* Quick Actions */}
+                    <section className="quick-actions">
+                        <h3>Quick Actions</h3>
+                        <div className="actions-grid">
+                            <div className="action-card" onClick={() => navigate('/appointment')}>
+                                <span className="action-icon">📋</span>
+                                <h4>Appointments</h4>
+                                <p>View or book appointments</p>
+                            </div>
+                            <div className="action-card" onClick={() => navigate('/doctors')}>
+                                <span className="action-icon">👨‍⚕️</span>
+                                <h4>Find Doctors</h4>
+                                <p>Browse our specialist doctors</p>
+                            </div>
+                            <div className="action-card" onClick={() => navigate('/beds')}>
+                                <span className="action-icon">🛏️</span>
+                                <h4>Bed Availability</h4>
+                                <p>Check & book hospital beds</p>
+                            </div>
+                            <div className="action-card" onClick={() => navigate('/records')}>
+                                <span className="action-icon">📊</span>
+                                <h4>Medical Records</h4>
+                                <p>View your health history</p>
+                            </div>
+                            <div className="action-card" onClick={() => navigate('/prescriptions')}>
+                                <span className="action-icon">💊</span>
+                                <h4>Prescriptions</h4>
+                                <p>Manage your medications</p>
+                            </div>
+                        </div>
+                    </section>
+
+                    {/* MediCare Model of Care */}
+                    <section className="model-of-care">
+                        <h3>MediCare Model of Care</h3>
+                        <p className="model-subtitle">Our commitment to providing exceptional healthcare</p>
+
+                        <div className="care-wheel-container">
+                            {/* Top Feature */}
+                            <div className="care-feature feature-top">
+                                <h4>Exceptional Clinical Talent</h4>
+                                <p>Highly qualified specialists</p>
+                            </div>
+
+                            {/* Left Features */}
+                            <div className="care-feature feature-left-top">
+                                <h4>Trust-based Compassionate Care</h4>
+                                <p>Patient-first approach</p>
+                            </div>
+                            <div className="care-feature feature-left-bottom">
+                                <h4>Caring Systems & Processes</h4>
+                                <p>Streamlined healthcare</p>
+                            </div>
+
+                            {/* Center Image */}
+                            <div className="care-center">
+                                <div className="care-circle">
+                                    <div className="circle-content">
+                                        <span className="care-icon">🏥</span>
+                                        <span className="care-label">MediCare</span>
+                                    </div>
+                                </div>
+                                <div className="orbit-ring"></div>
+                                <div className="dot dot-1"></div>
+                                <div className="dot dot-2"></div>
+                                <div className="dot dot-3"></div>
+                                <div className="dot dot-4"></div>
+                                <div className="dot dot-5"></div>
+                                <div className="dot dot-6"></div>
+                            </div>
+
+                            {/* Right Features */}
+                            <div className="care-feature feature-right-top">
+                                <h4>World-class Infrastructure</h4>
+                                <p>Modern medical facilities</p>
+                            </div>
+                            <div className="care-feature feature-right-bottom">
+                                <h4>Latest High-end Technology</h4>
+                                <p>Advanced medical equipment</p>
+                            </div>
+
+                            {/* Bottom Feature */}
+                            <div className="care-feature feature-bottom">
+                                <h4>24/7 Patient Support</h4>
+                                <p>Round-the-clock assistance</p>
+                            </div>
+                        </div>
+                    </section>
+
                     {/* About Us Section */}
                     <section className="about-us-section">
                         <div className="about-header">
@@ -138,43 +227,6 @@ const Home = () => {
                             </div>
                         </div>
                     </section>
-
-                    {/* Quick Actions */}
-                    <section className="quick-actions">
-                        <h3>Quick Actions</h3>
-                        <div className="actions-grid">
-                            <div className="action-card" onClick={() => navigate('/appointment')}>
-                                <span className="action-icon">📋</span>
-                                <h4>Appointments</h4>
-                                <p>View or book appointments</p>
-                            </div>
-                            <div className="action-card" onClick={() => navigate('/doctors')}>
-                                <span className="action-icon">👨‍⚕️</span>
-                                <h4>Find Doctors</h4>
-                                <p>Browse our specialist doctors</p>
-                            </div>
-                            <div className="action-card" onClick={() => navigate('/records')}>
-                                <span className="action-icon">📊</span>
-                                <h4>Medical Records</h4>
-                                <p>View your health history</p>
-                            </div>
-                            <div className="action-card" onClick={() => navigate('/prescriptions')}>
-                                <span className="action-icon">💊</span>
-                                <h4>Prescriptions</h4>
-                                <p>Manage your medications</p>
-                            </div>
-                        </div>
-                    </section>
-
-                    {/* Auth Status */}
-                    <section className="auth-status">
-                        <div className="status-badge success">
-                            <span>✓</span> You are authenticated
-                        </div>
-                        <p className="status-text">
-                            Your JWT token is securely stored and will persist across page refreshes.
-                        </p>
-                    </section>
                 </div>
             </main>
 
@@ -193,4 +245,3 @@ const Home = () => {
 };
 
 export default Home;
-

@@ -31,10 +31,45 @@ const appointmentSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['Scheduled', 'Completed', 'Cancelled', 'No Show'],
-        default: 'Scheduled'
+        enum: ['Pending', 'Confirmed', 'Rejected', 'Completed', 'Cancelled'],
+        default: 'Pending'
+    },
+    prescription: {
+        medications: [{
+            name: {
+                type: String,
+                trim: true
+            },
+            dosage: {
+                type: String,
+                trim: true
+            },
+            duration: {
+                type: String,
+                trim: true
+            },
+            instructions: {
+                type: String,
+                trim: true
+            }
+        }],
+        diagnosis: {
+            type: String,
+            trim: true
+        },
+        notes: {
+            type: String,
+            trim: true
+        },
+        issuedAt: {
+            type: Date
+        }
     },
     notes: {
+        type: String,
+        default: ''
+    },
+    rejectionReason: {
         type: String,
         default: ''
     },

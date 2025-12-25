@@ -245,9 +245,30 @@ const DatePicker = ({ value, onChange, onClose }) => {
  */
 const ProfileModal = ({ isOpen, onClose }) => {
     const { user, updateProfile } = useAuth();
+
+    // Country codes list
+    const countryCodes = [
+        { code: '+91', country: 'India', flag: '🇮🇳' },
+        { code: '+1', country: 'USA/Canada', flag: '🇺🇸' },
+        { code: '+44', country: 'UK', flag: '🇬🇧' },
+        { code: '+61', country: 'Australia', flag: '🇦🇺' },
+        { code: '+971', country: 'UAE', flag: '🇦🇪' },
+        { code: '+966', country: 'Saudi Arabia', flag: '🇸🇦' },
+        { code: '+65', country: 'Singapore', flag: '🇸🇬' },
+        { code: '+60', country: 'Malaysia', flag: '🇲🇾' },
+        { code: '+49', country: 'Germany', flag: '🇩🇪' },
+        { code: '+33', country: 'France', flag: '🇫🇷' },
+        { code: '+81', country: 'Japan', flag: '🇯🇵' },
+        { code: '+86', country: 'China', flag: '🇨🇳' },
+        { code: '+82', country: 'South Korea', flag: '🇰🇷' },
+        { code: '+7', country: 'Russia', flag: '🇷🇺' },
+        { code: '+55', country: 'Brazil', flag: '🇧🇷' }
+    ];
+
     const [formData, setFormData] = useState({
         dob: '',
-        mobile: ''
+        mobile: '',
+        countryCode: '+91'
     });
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [saving, setSaving] = useState(false);
@@ -256,9 +277,21 @@ const ProfileModal = ({ isOpen, onClose }) => {
     // Initialize form with user data when modal opens or user changes
     useEffect(() => {
         if (user && isOpen) {
+            // Extract country code from mobile if exists
+            let mobile = user.mobile || '';
+            let countryCode = '+91';
+
+            // Check if mobile starts with a known country code
+            const foundCode = countryCodes.find(cc => mobile.startsWith(cc.code));
+            if (foundCode) {
+                countryCode = foundCode.code;
+                mobile = mobile.slice(foundCode.code.length);
+            }
+
             setFormData({
                 dob: user.dob ? new Date(user.dob).toISOString().split('T')[0] : '',
-                mobile: user.mobile || ''
+                mobile: mobile,
+                countryCode: countryCode
             });
             setSaveStatus({ type: '', message: '' });
         }
@@ -279,12 +312,17 @@ const ProfileModal = ({ isOpen, onClose }) => {
         setSaving(true);
         setSaveStatus({ type: '', message: '' });
 
-        console.log('Submitting profile update:', formData);
+        // Combine country code with mobile number
+        const fullMobile = formData.mobile.trim()
+            ? `${formData.countryCode}${formData.mobile.trim()}`
+            : '';
+
+        console.log('Submitting profile update:', { dob: formData.dob, mobile: fullMobile });
 
         try {
             const result = await updateProfile({
                 dob: formData.dob || null,
-                mobile: formData.mobile || ''
+                mobile: fullMobile
             });
 
             console.log('Update result:', result);
@@ -377,16 +415,29 @@ const ProfileModal = ({ isOpen, onClose }) => {
                                 </div>
                             </div>
 
-                            {/* Mobile Field */}
+                            {/* Mobile Field with Country Code */}
                             <div className="form-group">
                                 <label>📱 Mobile Number</label>
-                                <input
-                                    type="tel"
-                                    placeholder="Enter your mobile number (e.g., 9876543210)"
-                                    value={formData.mobile}
-                                    onChange={handleMobileChange}
-                                    maxLength={15}
-                                />
+                                <div className="mobile-input-group">
+                                    <select
+                                        className="country-code-select"
+                                        value={formData.countryCode}
+                                        onChange={(e) => setFormData(prev => ({ ...prev, countryCode: e.target.value }))}
+                                    >
+                                        {countryCodes.map(cc => (
+                                            <option key={cc.code} value={cc.code}>
+                                                {cc.flag} {cc.code}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <input
+                                        type="tel"
+                                        placeholder="Enter mobile number"
+                                        value={formData.mobile}
+                                        onChange={handleMobileChange}
+                                        maxLength={15}
+                                    />
+                                </div>
                             </div>
 
                             {/* Status Message */}
