@@ -5,7 +5,8 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "node server.js"
+    "dev": "node server.js",
+    "kill-port": "npx kill-port 5000"
   },
   "keywords": [
     "medicare",

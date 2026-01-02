@@ -77,6 +77,7 @@ app.use('/api/appointments', require('./routes/appointments'));
 app.use('/api/records', require('./routes/records'));
 app.use('/api/prescriptions', require('./routes/prescriptions'));
 app.use('/api/beds', require('./routes/beds'));
+app.use('/api/reviews', require('./routes/reviewRoutes'));
 
 // 404 handler for unknown routes
 app.use((req, res, next) => {

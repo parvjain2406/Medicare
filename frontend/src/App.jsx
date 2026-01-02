@@ -12,6 +12,7 @@ import MedicalRecords from './pages/MedicalRecords';
 import Prescriptions from './pages/Prescriptions';
 import BedAvailability from './pages/BedAvailability';
 import DoctorDashboard from './pages/DoctorDashboard';
+import Landing from './pages/Landing';
 
 /**
  * Main App Component
@@ -25,12 +26,13 @@ function App() {
                     <div className="app">
                         <Routes>
                             {/* Public Routes */}
+                            <Route path="/" element={<Landing />} />
                             <Route path="/login" element={<Login />} />
                             <Route path="/register" element={<Register />} />
 
                             {/* Patient Protected Routes */}
                             <Route
-                                path="/"
+                                path="/dashboard"
                                 element={
                                     <ProtectedRoute>
                                         <Home />

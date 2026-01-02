@@ -149,7 +149,9 @@ const FindDoctors = () => {
                                 </div>
                                 <div className="doctor-rating">
                                     <span className="stars">{getRatingStars(doctor.rating)}</span>
-                                    <span className="rating-value">{doctor.rating.toFixed(1)}</span>
+                                    <span className="rating-value">
+                                        {doctor.rating.toFixed(1)} <span style={{ fontSize: '0.8em', color: '#64748b' }}>({doctor.numReviews || 0} reviews)</span>
+                                    </span>
                                 </div>
                                 <div className="doctor-footer">
                                     <span className="fees">₹{doctor.fees}</span>

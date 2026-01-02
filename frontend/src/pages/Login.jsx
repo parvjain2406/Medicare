@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useDoctorAuth } from '../context/DoctorAuthContext';
+import './Login.css';
+
+import Landing from './Landing';
 
 /**
  * Login Page Component
@@ -30,7 +33,7 @@ const Login = () => {
     // Redirect if already authenticated
     useEffect(() => {
         if (isPatientAuth && !isDoctor) {
-            const from = location.state?.from?.pathname || '/';
+            const from = location.state?.from?.pathname || '/dashboard';
             navigate(from, { replace: true });
         }
     }, [isPatientAuth, isDoctor, navigate, location]);
@@ -141,135 +144,141 @@ const Login = () => {
     const error = isDoctor ? doctorError : patientError;
 
     return (
-        <div className="auth-container">
-            <div className="auth-card">
-                <div className="auth-header">
-                    <div className="logo">
-                        <span className="logo-icon">🏥</span>
-                        <h1>MediCare</h1>
+        <div className="login-wrapper">
+            <div className="login-background-layer">
+                <Landing disableRedirects={true} isBackground={true} />
+            </div>
+
+            <div className="auth-container glass-overlay">
+                <div className="auth-card glass-card">
+                    <div className="auth-header">
+                        <div className="logo">
+                            <span className="logo-icon">🏥</span>
+                            <h1>MediCare</h1>
+                        </div>
+                        <h2>{isDoctor ? "Doctor's Portal" : 'Welcome Back'}</h2>
+                        <p>
+                            {isDoctor
+                                ? 'Sign in to manage your appointments'
+                                : 'Sign in to access your healthcare dashboard'}
+                        </p>
                     </div>
-                    <h2>{isDoctor ? "Doctor's Portal" : 'Welcome Back'}</h2>
-                    <p>
-                        {isDoctor
-                            ? 'Sign in to manage your appointments'
-                            : 'Sign in to access your healthcare dashboard'}
-                    </p>
-                </div>
 
-                {/* Login Mode Indicator */}
-                <div className={`login-mode-indicator ${isDoctor ? 'doctor-mode' : 'patient-mode'}`}>
-                    <span className="mode-icon">{isDoctor ? '👨‍⚕️' : '👤'}</span>
-                    <span className="mode-text">{isDoctor ? 'Doctor Login' : 'Patient Login'}</span>
-                </div>
+                    {/* Login Mode Indicator */}
+                    <div className={`login-mode-indicator ${isDoctor ? 'doctor-mode' : 'patient-mode'}`}>
+                        <span className="mode-icon">{isDoctor ? '👨‍⚕️' : '👤'}</span>
+                        <span className="mode-text">{isDoctor ? 'Doctor Login' : 'Patient Login'}</span>
+                    </div>
 
-                <form onSubmit={handleSubmit} className="auth-form">
-                    {/* Submit Error */}
-                    {(submitError || error) && (
-                        <div className="error-alert">
-                            <span className="error-icon">⚠️</span>
-                            {submitError || error}
+                    <form onSubmit={handleSubmit} className="auth-form">
+                        {/* Submit Error */}
+                        {(submitError || error) && (
+                            <div className="error-alert">
+                                <span className="error-icon">⚠️</span>
+                                {submitError || error}
+                            </div>
+                        )}
+
+                        {/* Email Field */}
+                        <div className="form-group">
+                            <label htmlFor="email">Email Address</label>
+                            <input
+                                type="email"
+                                id="email"
+                                name="email"
+                                value={formData.email}
+                                onChange={handleChange}
+                                placeholder={isDoctor ? 'e.g., doctor.name@medicare.ac.in' : 'Enter your email'}
+                                className={validationErrors.email ? 'error' : ''}
+                                disabled={isSubmitting || loading}
+                                autoComplete="email"
+                            />
+                            {validationErrors.email && (
+                                <span className="field-error">{validationErrors.email}</span>
+                            )}
+                        </div>
+
+                        {/* Password Field */}
+                        <div className="form-group">
+                            <label htmlFor="password">Password</label>
+                            <input
+                                type="password"
+                                id="password"
+                                name="password"
+                                value={formData.password}
+                                onChange={handleChange}
+                                placeholder={isDoctor ? 'Default: 123456' : 'Enter your password'}
+                                className={validationErrors.password ? 'error' : ''}
+                                disabled={isSubmitting || loading}
+                                autoComplete="current-password"
+                            />
+                            {validationErrors.password && (
+                                <span className="field-error">{validationErrors.password}</span>
+                            )}
+                        </div>
+
+                        {/* Submit Button */}
+                        <button
+                            type="submit"
+                            className={`auth-button ${isDoctor ? 'doctor-button' : ''}`}
+                            disabled={isSubmitting || loading}
+                        >
+                            {(isSubmitting || loading) ? (
+                                <>
+                                    <span className="button-spinner"></span>
+                                    Signing In...
+                                </>
+                            ) : (
+                                `Sign In as ${isDoctor ? 'Doctor' : 'Patient'}`
+                            )}
+                        </button>
+                    </form>
+
+                    {/* Toggle Login Mode */}
+                    <div className="login-toggle-section">
+                        <div className="toggle-divider">
+                            <span>or</span>
+                        </div>
+                        <button
+                            type="button"
+                            className={`toggle-login-btn ${isDoctor ? 'toggle-patient' : 'toggle-doctor'}`}
+                            onClick={toggleLoginMode}
+                        >
+                            {isDoctor ? (
+                                <>
+                                    <span>👤</span> Switch to Patient Login
+                                </>
+                            ) : (
+                                <>
+                                    <span>👨‍⚕️</span> Doctor's Login
+                                </>
+                            )}
+                        </button>
+                    </div>
+
+                    {/* Footer - Only show for patient */}
+                    {!isDoctor && (
+                        <div className="auth-footer">
+                            <p>
+                                Don't have an account?{' '}
+                                <Link to="/register" className="auth-link">
+                                    Create Account
+                                </Link>
+                            </p>
                         </div>
                     )}
 
-                    {/* Email Field */}
-                    <div className="form-group">
-                        <label htmlFor="email">Email Address</label>
-                        <input
-                            type="email"
-                            id="email"
-                            name="email"
-                            value={formData.email}
-                            onChange={handleChange}
-                            placeholder={isDoctor ? 'e.g., doctor.name@medicare.ac.in' : 'Enter your email'}
-                            className={validationErrors.email ? 'error' : ''}
-                            disabled={isSubmitting || loading}
-                            autoComplete="email"
-                        />
-                        {validationErrors.email && (
-                            <span className="field-error">{validationErrors.email}</span>
-                        )}
-                    </div>
-
-                    {/* Password Field */}
-                    <div className="form-group">
-                        <label htmlFor="password">Password</label>
-                        <input
-                            type="password"
-                            id="password"
-                            name="password"
-                            value={formData.password}
-                            onChange={handleChange}
-                            placeholder={isDoctor ? 'Default: 123456' : 'Enter your password'}
-                            className={validationErrors.password ? 'error' : ''}
-                            disabled={isSubmitting || loading}
-                            autoComplete="current-password"
-                        />
-                        {validationErrors.password && (
-                            <span className="field-error">{validationErrors.password}</span>
-                        )}
-                    </div>
-
-                    {/* Submit Button */}
-                    <button
-                        type="submit"
-                        className={`auth-button ${isDoctor ? 'doctor-button' : ''}`}
-                        disabled={isSubmitting || loading}
-                    >
-                        {(isSubmitting || loading) ? (
-                            <>
-                                <span className="button-spinner"></span>
-                                Signing In...
-                            </>
-                        ) : (
-                            `Sign In as ${isDoctor ? 'Doctor' : 'Patient'}`
-                        )}
-                    </button>
-                </form>
-
-                {/* Toggle Login Mode */}
-                <div className="login-toggle-section">
-                    <div className="toggle-divider">
-                        <span>or</span>
-                    </div>
-                    <button
-                        type="button"
-                        className={`toggle-login-btn ${isDoctor ? 'toggle-patient' : 'toggle-doctor'}`}
-                        onClick={toggleLoginMode}
-                    >
-                        {isDoctor ? (
-                            <>
-                                <span>👤</span> Switch to Patient Login
-                            </>
-                        ) : (
-                            <>
-                                <span>👨‍⚕️</span> Doctor's Login
-                            </>
-                        )}
-                    </button>
+                    {/* Doctor info note */}
+                    {isDoctor && (
+                        <div className="doctor-login-note">
+                            <p>
+                                <strong>👨‍⚕️ For Doctors:</strong> Use your @medicare.ac.in email
+                                <br />
+                                <small>Contact admin if you don't have credentials</small>
+                            </p>
+                        </div>
+                    )}
                 </div>
-
-                {/* Footer - Only show for patient */}
-                {!isDoctor && (
-                    <div className="auth-footer">
-                        <p>
-                            Don't have an account?{' '}
-                            <Link to="/register" className="auth-link">
-                                Create Account
-                            </Link>
-                        </p>
-                    </div>
-                )}
-
-                {/* Doctor info note */}
-                {isDoctor && (
-                    <div className="doctor-login-note">
-                        <p>
-                            <strong>👨‍⚕️ For Doctors:</strong> Use your @medicare.ac.in email
-                            <br />
-                            <small>Contact admin if you don't have credentials</small>
-                        </p>
-                    </div>
-                )}
             </div>
         </div>
     );

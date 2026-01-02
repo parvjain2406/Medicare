@@ -67,9 +67,14 @@ const doctorSchema = new mongoose.Schema({
     },
     rating: {
         type: Number,
-        default: 4.5,
+        default: 0,
         min: 0,
-        max: 5
+        max: 5,
+        set: val => Math.round(val * 10) / 10
+    },
+    numReviews: {
+        type: Number,
+        default: 0
     },
     about: {
         type: String,

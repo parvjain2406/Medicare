@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import api from '../utils/api';
+import ReviewModal from '../components/ReviewModal';
 
 /**
  * Appointments Page
@@ -251,6 +252,22 @@ const BookAppointment = () => {
         return new Date(date) >= new Date(new Date().setHours(0, 0, 0, 0));
     };
 
+    // Review modal state
+    const [reviewModalOpen, setReviewModalOpen] = useState(false);
+    const [selectedAppointmentForReview, setSelectedAppointmentForReview] = useState(null);
+
+    const openReviewModal = (appointment) => {
+        setSelectedAppointmentForReview(appointment);
+        setReviewModalOpen(true);
+    };
+
+    const handleReviewSubmitSuccess = () => {
+        fetchAppointments(); // Refresh to potentially show updated status or hide rate button if we implement logic to hide it
+        // Actually, logic is: button shows if no review exists? 
+        // Backend prevents duplicates, but frontend doesn't know if review exists unless we check.
+        // For now, simpler: just refreshing.
+    };
+
     return (
         <div className="page-container">
             {/* Header */}
@@ -382,13 +399,34 @@ const BookAppointment = () => {
                                             )}
 
                                             {/* View Prescription button for completed */}
-                                            {appointment.status === 'Completed' && appointment.prescription && (
-                                                <button
-                                                    className="view-prescription-btn"
-                                                    onClick={() => openPrescriptionModal(appointment)}
-                                                >
-                                                    📋 View Prescription
-                                                </button>
+                                            {appointment.status === 'Completed' && (
+                                                <>
+                                                    {appointment.prescription && (
+                                                        <button
+                                                            className="view-prescription-btn"
+                                                            onClick={() => openPrescriptionModal(appointment)}
+                                                        >
+                                                            📋 View Prescription
+                                                        </button>
+                                                    )}
+                                                    <button
+                                                        className="rate-doctor-btn"
+                                                        onClick={() => openReviewModal(appointment)}
+                                                        style={{
+                                                            marginLeft: '10px',
+                                                            padding: '8px 16px',
+                                                            backgroundColor: '#fbbf24',
+                                                            color: '#fff',
+                                                            border: 'none',
+                                                            borderRadius: '6px',
+                                                            cursor: 'pointer',
+                                                            fontWeight: '500',
+                                                            display: appointment.isRated ? 'none' : 'inline-block'
+                                                        }}
+                                                    >
+                                                        ⭐ Rate Doctor
+                                                    </button>
+                                                </>
                                             )}
                                         </div>
                                     </div>
@@ -416,6 +454,7 @@ const BookAppointment = () => {
                                 required
                             >
                                 <option value="">Choose a doctor...</option>
+                                <option value="" disabled>Select a doctor</option>
                                 {doctors.map((doctor) => (
                                     <option key={doctor._id} value={doctor._id}>
                                         {doctor.name} - {doctor.specialization} (₹{doctor.fees})
@@ -640,6 +679,16 @@ const BookAppointment = () => {
                     </div>
                 </div>
             )}
+
+            {/* Review Modal */}
+            <ReviewModal
+                isOpen={reviewModalOpen}
+                onClose={() => setReviewModalOpen(false)}
+                doctorName={selectedAppointmentForReview?.doctor?.name}
+                appointmentId={selectedAppointmentForReview?._id}
+                doctorId={selectedAppointmentForReview?.doctor?._id}
+                onSubmitSuccess={handleReviewSubmitSuccess}
+            />
         </div>
     );
 };

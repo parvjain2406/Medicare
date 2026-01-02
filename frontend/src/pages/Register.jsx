@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import Landing from './Landing';
+import './Login.css'; // Reusing login styles for consistency
 
 /**
  * Register Page Component
@@ -161,154 +163,160 @@ const Register = () => {
     };
 
     return (
-        <div className="auth-container">
-            <div className="auth-card">
-                <div className="auth-header">
-                    <div className="logo">
-                        <span className="logo-icon">🏥</span>
-                        <h1>MediCare</h1>
-                    </div>
-                    <h2>Create Account</h2>
-                    <p>Join MediCare to manage your healthcare needs</p>
-                </div>
+        <div className="login-wrapper">
+            <div className="login-background-layer">
+                <Landing disableRedirects={true} isBackground={true} />
+            </div>
 
-                <form onSubmit={handleSubmit} className="auth-form">
-                    {/* Submit Error */}
-                    {(submitError || error) && (
-                        <div className="error-alert">
-                            <span className="error-icon">⚠️</span>
-                            {submitError || error}
+            <div className="auth-container glass-overlay">
+                <div className="auth-card glass-card">
+                    <div className="auth-header">
+                        <div className="logo">
+                            <span className="logo-icon">🏥</span>
+                            <h1>MediCare</h1>
                         </div>
-                    )}
-
-                    {/* Name Field */}
-                    <div className="form-group">
-                        <label htmlFor="name">Full Name *</label>
-                        <input
-                            type="text"
-                            id="name"
-                            name="name"
-                            value={formData.name}
-                            onChange={handleChange}
-                            placeholder="Enter your full name"
-                            className={validationErrors.name ? 'error' : ''}
-                            disabled={isSubmitting || loading}
-                        />
-                        {validationErrors.name && (
-                            <span className="field-error">{validationErrors.name}</span>
-                        )}
+                        <h2>Create Account</h2>
+                        <p>Join MediCare to manage your healthcare needs</p>
                     </div>
 
-                    {/* Email Field */}
-                    <div className="form-group">
-                        <label htmlFor="email">Email Address *</label>
-                        <input
-                            type="email"
-                            id="email"
-                            name="email"
-                            value={formData.email}
-                            onChange={handleChange}
-                            placeholder="Enter your email"
-                            className={validationErrors.email ? 'error' : ''}
-                            disabled={isSubmitting || loading}
-                        />
-                        {validationErrors.email && (
-                            <span className="field-error">{validationErrors.email}</span>
+                    <form onSubmit={handleSubmit} className="auth-form">
+                        {/* Submit Error */}
+                        {(submitError || error) && (
+                            <div className="error-alert">
+                                <span className="error-icon">⚠️</span>
+                                {submitError || error}
+                            </div>
                         )}
-                    </div>
 
-                    {/* Mobile Field with Country Code */}
-                    <div className="form-group">
-                        <label htmlFor="mobile">Mobile Number (Optional)</label>
-                        <div className="mobile-input-group">
-                            <select
-                                className="country-code-select"
-                                value={formData.countryCode}
-                                onChange={(e) => setFormData(prev => ({ ...prev, countryCode: e.target.value }))}
-                                disabled={isSubmitting || loading}
-                            >
-                                {countryCodes.map(cc => (
-                                    <option key={cc.code} value={cc.code}>
-                                        {cc.flag} {cc.code}
-                                    </option>
-                                ))}
-                            </select>
+                        {/* Name Field */}
+                        <div className="form-group">
+                            <label htmlFor="name">Full Name *</label>
                             <input
-                                type="tel"
-                                id="mobile"
-                                name="mobile"
-                                value={formData.mobile}
+                                type="text"
+                                id="name"
+                                name="name"
+                                value={formData.name}
                                 onChange={handleChange}
-                                placeholder="Enter mobile number"
-                                className={validationErrors.mobile ? 'error' : ''}
+                                placeholder="Enter your full name"
+                                className={validationErrors.name ? 'error' : ''}
                                 disabled={isSubmitting || loading}
                             />
+                            {validationErrors.name && (
+                                <span className="field-error">{validationErrors.name}</span>
+                            )}
                         </div>
-                        {validationErrors.mobile && (
-                            <span className="field-error">{validationErrors.mobile}</span>
-                        )}
-                    </div>
 
-                    {/* Password Field */}
-                    <div className="form-group">
-                        <label htmlFor="password">Password *</label>
-                        <input
-                            type="password"
-                            id="password"
-                            name="password"
-                            value={formData.password}
-                            onChange={handleChange}
-                            placeholder="Create a password (min 6 characters)"
-                            className={validationErrors.password ? 'error' : ''}
+                        {/* Email Field */}
+                        <div className="form-group">
+                            <label htmlFor="email">Email Address *</label>
+                            <input
+                                type="email"
+                                id="email"
+                                name="email"
+                                value={formData.email}
+                                onChange={handleChange}
+                                placeholder="Enter your email"
+                                className={validationErrors.email ? 'error' : ''}
+                                disabled={isSubmitting || loading}
+                            />
+                            {validationErrors.email && (
+                                <span className="field-error">{validationErrors.email}</span>
+                            )}
+                        </div>
+
+                        {/* Mobile Field with Country Code */}
+                        <div className="form-group">
+                            <label htmlFor="mobile">Mobile Number (Optional)</label>
+                            <div className="mobile-input-group">
+                                <select
+                                    className="country-code-select"
+                                    value={formData.countryCode}
+                                    onChange={(e) => setFormData(prev => ({ ...prev, countryCode: e.target.value }))}
+                                    disabled={isSubmitting || loading}
+                                >
+                                    {countryCodes.map(cc => (
+                                        <option key={cc.code} value={cc.code}>
+                                            {cc.flag} {cc.code}
+                                        </option>
+                                    ))}
+                                </select>
+                                <input
+                                    type="tel"
+                                    id="mobile"
+                                    name="mobile"
+                                    value={formData.mobile}
+                                    onChange={handleChange}
+                                    placeholder="Enter mobile number"
+                                    className={validationErrors.mobile ? 'error' : ''}
+                                    disabled={isSubmitting || loading}
+                                />
+                            </div>
+                            {validationErrors.mobile && (
+                                <span className="field-error">{validationErrors.mobile}</span>
+                            )}
+                        </div>
+
+                        {/* Password Field */}
+                        <div className="form-group">
+                            <label htmlFor="password">Password *</label>
+                            <input
+                                type="password"
+                                id="password"
+                                name="password"
+                                value={formData.password}
+                                onChange={handleChange}
+                                placeholder="Create a password (min 6 characters)"
+                                className={validationErrors.password ? 'error' : ''}
+                                disabled={isSubmitting || loading}
+                            />
+                            {validationErrors.password && (
+                                <span className="field-error">{validationErrors.password}</span>
+                            )}
+                        </div>
+
+                        {/* Confirm Password Field */}
+                        <div className="form-group">
+                            <label htmlFor="confirmPassword">Confirm Password *</label>
+                            <input
+                                type="password"
+                                id="confirmPassword"
+                                name="confirmPassword"
+                                value={formData.confirmPassword}
+                                onChange={handleChange}
+                                placeholder="Confirm your password"
+                                className={validationErrors.confirmPassword ? 'error' : ''}
+                                disabled={isSubmitting || loading}
+                            />
+                            {validationErrors.confirmPassword && (
+                                <span className="field-error">{validationErrors.confirmPassword}</span>
+                            )}
+                        </div>
+
+                        {/* Submit Button */}
+                        <button
+                            type="submit"
+                            className="auth-button"
                             disabled={isSubmitting || loading}
-                        />
-                        {validationErrors.password && (
-                            <span className="field-error">{validationErrors.password}</span>
-                        )}
+                        >
+                            {(isSubmitting || loading) ? (
+                                <>
+                                    <span className="button-spinner"></span>
+                                    Creating Account...
+                                </>
+                            ) : (
+                                'Create Account'
+                            )}
+                        </button>
+                    </form>
+
+                    <div className="auth-footer">
+                        <p>
+                            Already have an account?{' '}
+                            <Link to="/login" className="auth-link">
+                                Sign In
+                            </Link>
+                        </p>
                     </div>
-
-                    {/* Confirm Password Field */}
-                    <div className="form-group">
-                        <label htmlFor="confirmPassword">Confirm Password *</label>
-                        <input
-                            type="password"
-                            id="confirmPassword"
-                            name="confirmPassword"
-                            value={formData.confirmPassword}
-                            onChange={handleChange}
-                            placeholder="Confirm your password"
-                            className={validationErrors.confirmPassword ? 'error' : ''}
-                            disabled={isSubmitting || loading}
-                        />
-                        {validationErrors.confirmPassword && (
-                            <span className="field-error">{validationErrors.confirmPassword}</span>
-                        )}
-                    </div>
-
-                    {/* Submit Button */}
-                    <button
-                        type="submit"
-                        className="auth-button"
-                        disabled={isSubmitting || loading}
-                    >
-                        {(isSubmitting || loading) ? (
-                            <>
-                                <span className="button-spinner"></span>
-                                Creating Account...
-                            </>
-                        ) : (
-                            'Create Account'
-                        )}
-                    </button>
-                </form>
-
-                <div className="auth-footer">
-                    <p>
-                        Already have an account?{' '}
-                        <Link to="/login" className="auth-link">
-                            Sign In
-                        </Link>
-                    </p>
                 </div>
             </div>
         </div>

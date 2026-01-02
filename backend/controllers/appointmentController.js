@@ -16,14 +16,24 @@ exports.getAppointments = async (req, res) => {
             query.status = status;
         }
 
-        const appointments = await Appointment.find(query)
+        const appointmentDocs = await Appointment.find(query)
             .populate('doctor', 'name specialization hospital image fees')
-            .sort({ date: -1, createdAt: -1 });
+            .sort({ date: -1, createdAt: -1 }).lean();
+
+        const Review = require('../models/Review');
+
+        const appointmentsWithRating = await Promise.all(appointmentDocs.map(async (app) => {
+            const review = await Review.findOne({ appointment: app._id });
+            return {
+                ...app,
+                isRated: !!review
+            };
+        }));
 
         res.status(200).json({
             success: true,
-            count: appointments.length,
-            data: appointments
+            count: appointmentsWithRating.length,
+            data: appointmentsWithRating
         });
     } catch (error) {
         console.error('Get appointments error:', error);
@@ -41,21 +51,29 @@ exports.getAppointments = async (req, res) => {
  */
 exports.getAppointmentById = async (req, res) => {
     try {
-        const appointment = await Appointment.findOne({
+        const appointmentDoc = await Appointment.findOne({
             _id: req.params.id,
             patient: req.user._id
-        }).populate('doctor', 'name specialization hospital image fees qualifications');
+        }).populate('doctor', 'name specialization hospital image fees qualifications').lean();
 
-        if (!appointment) {
+        if (!appointmentDoc) {
             return res.status(404).json({
                 success: false,
                 message: 'Appointment not found'
             });
         }
 
+        const Review = require('../models/Review');
+        const review = await Review.findOne({ appointment: appointmentDoc._id });
+
+        const appointmentWithRating = {
+            ...appointmentDoc,
+            isRated: !!review
+        };
+
         res.status(200).json({
             success: true,
-            data: appointment
+            data: appointmentWithRating
         });
     } catch (error) {
         console.error('Get appointment error:', error);

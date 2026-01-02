@@ -200,8 +200,40 @@ const completeAppointment = asyncHandler(async (req, res) => {
 
     await appointment.save();
 
-    // SYNC: Update patient's currentMedications
+    // Create Medical Record
+    const MedicalRecord = require('../models/MedicalRecord');
+    const medicalRecord = await MedicalRecord.create({
+        patient: appointment.patient,
+        doctor: appointment.doctor,
+        appointment: appointment._id,
+        visitType: 'Consultation', // Default to Consultation
+        diagnosis: prescription.diagnosis || 'Consultation',
+        notes: prescription.notes || '',
+        date: appointment.date,
+        status: 'Completed'
+    });
+
+    // Create Prescription Document if medications exist
     if (prescription.medications && prescription.medications.length > 0) {
+        const Prescription = require('../models/Prescription');
+        await Prescription.create({
+            patient: appointment.patient,
+            doctor: appointment.doctor,
+            record: medicalRecord._id,
+            diagnosis: prescription.diagnosis,
+            medicines: prescription.medications.map(med => ({
+                name: med.name,
+                genericName: med.genericName || '',
+                dosage: med.dosage,
+                duration: med.duration,
+                instructions: med.instructions || ''
+            })),
+            notes: prescription.notes || '',
+            date: new Date(),
+            isActive: true
+        });
+
+        // SYNC: Update patient's currentMedications
         const medicationsToAdd = prescription.medications.map(med => ({
             name: med.name,
             dosage: med.dosage || '',
@@ -229,7 +261,7 @@ const completeAppointment = asyncHandler(async (req, res) => {
 
     res.status(200).json({
         success: true,
-        message: 'Appointment completed and prescription added successfully',
+        message: 'Appointment completed, medical record created, and prescription issued successfully',
         data: appointment
     });
 });
